@@ -1,0 +1,1226 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WBJ Infografis Maker</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <style>
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background-color: #030712;
+      color: #f3f4f6;
+    }
+    pre, code, .font-mono {
+      font-family: 'JetBrains Mono', monospace;
+    }
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #0b0f19;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #1f2937;
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #374151;
+    }
+    .glass-card {
+      background: rgba(15, 23, 42, 0.75);
+      backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .glow-indigo {
+      box-shadow: 0 0 25px -5px rgba(99, 102, 241, 0.25);
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between selection:bg-indigo-500 selection:text-white">
+
+  <header class="border-b border-slate-800/80 bg-slate-950/80 sticky top-0 z-40 backdrop-blur-md">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 py-3.5 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 via-indigo-500 to-amber-400 flex items-center justify-center text-white shadow-lg shadow-indigo-500/20">
+          <i class="fa-solid fa-shapes text-lg"></i>
+        </div>
+        <div>
+          <h1 class="text-base sm:text-lg font-bold text-white flex items-center gap-2">
+            WBJ Infografis Maker
+            <span class="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">AI Studio</span>
+          </h1>
+          <p class="text-xs text-slate-400">Blueprint JSON Otomatis & Visual Poster Edukatif</p>
+        </div>
+      </div>
+
+      <!-- Quick Actions Header -->
+      <div class="flex items-center gap-2">
+        <button onclick="toggleHistoryDrawer()" class="px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-800 text-xs font-medium text-slate-300 transition flex items-center gap-1.5">
+          <i class="fa-solid fa-clock-rotate-left text-slate-400"></i>
+          <span class="hidden sm:inline">Riwayat</span>
+          <span id="historyBadge" class="hidden w-4 h-4 rounded-full bg-indigo-600 text-[10px] text-white flex items-center justify-center font-bold">0</span>
+        </button>
+        <button onclick="openInfoModal()" class="px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-800 text-xs font-medium text-slate-300 transition flex items-center gap-1.5">
+          <i class="fa-solid fa-circle-question text-slate-400"></i>
+          <span class="hidden sm:inline">Bantuan</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 py-6 w-full flex-grow">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+      <!-- Left Column: Form & Parameter Controls (5 Cols) -->
+      <section class="lg:col-span-5 space-y-4">
+        <div class="glass-card rounded-2xl p-5 sm:p-6 shadow-xl space-y-5">
+          
+          <!-- Section Title (Preset Buttons Removed) -->
+          <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+            <h2 class="text-xs font-bold uppercase tracking-wider text-slate-300 flex items-center gap-2">
+              <i class="fa-solid fa-sliders text-indigo-400"></i> Parameter Infografis
+            </h2>
+            <div id="cooldownBadge" class="hidden text-[11px] font-mono font-semibold px-2.5 py-1 rounded-lg bg-amber-500/15 text-amber-300 border border-amber-500/30 flex items-center gap-1.5">
+              <i class="fa-solid fa-hourglass-half animate-spin text-[10px]"></i>
+              <span id="cooldownBadgeText">Jeda: 60s</span>
+            </div>
+          </div>
+
+          <!-- Main Input Form -->
+          <form id="infographicForm" onsubmit="event.preventDefault(); startPipeline();" class="space-y-4">
+            <!-- 0. API Key Gemini -->
+            <div>
+              <label class="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1.5 flex items-center gap-1.5">
+                <i class="fa-solid fa-key text-amber-400"></i> API Key Gemini
+              </label>
+              <input id="apiKeyInput" type="password" required placeholder="Paste API Key Gemini Anda di sini..." class="w-full bg-slate-900 border border-amber-500/50 focus:border-amber-400 focus:ring-1 focus:ring-amber-400 rounded-xl px-3.5 py-2.5 text-sm text-slate-100 placeholder-slate-500 transition shadow-inner shadow-black/50">
+              <p class="text-[10px] text-slate-500 mt-1.5 flex items-center gap-1">
+                <i class="fa-solid fa-shield-halved text-emerald-500"></i> Key hanya tersimpan di browser Anda dan dijamin aman.
+              </p>
+            </div>
+            <!-- 1. Ide Konten / Topik -->
+            <div>
+              <div class="flex items-center justify-between mb-1.5">
+                <label class="text-xs font-bold uppercase tracking-wider text-slate-300 flex items-center gap-1.5">
+                  <span>1. Ide Konten / Topik Utama</span>
+                </label>
+                <button type="button" id="expandIdeaBtn" onclick="expandIdeaWithAI()" class="px-2.5 py-1 rounded-lg bg-indigo-600/20 hover:bg-indigo-600/40 text-indigo-300 border border-indigo-500/30 text-[11px] font-semibold transition flex items-center gap-1.5 active:scale-95 group">
+                  <i id="expandIdeaIcon" class="fa-solid fa-wand-magic-sparkles text-[10px] text-indigo-400 group-hover:rotate-12 transition"></i>
+                  <span id="expandIdeaLabel">Kembangkan Ide (AI)</span>
+                </button>
+              </div>
+              <textarea id="topicInput" rows="3" required placeholder="Ketik ide singkat (misal: 'daur ulang plastik' atau 'manfaat madu') lalu klik 'Kembangkan Ide (AI)', atau ketik konsep lengkap Anda di sini..." class="w-full bg-slate-950 border border-slate-800 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 rounded-xl p-3 text-sm text-slate-100 placeholder-slate-600 transition resize-none"></textarea>
+              
+              <!-- Container Alternatif Sudut Pandang Hasil Generate AI -->
+              <div id="ideaSuggestionsBox" class="hidden mt-2 p-2.5 bg-slate-950/90 border border-indigo-500/25 rounded-xl space-y-1.5 animate-fadeIn">
+                <div class="flex items-center justify-between">
+                  <span class="text-[10px] font-bold text-indigo-400 uppercase tracking-wider flex items-center gap-1">
+                    <i class="fa-solid fa-lightbulb text-amber-400 text-xs"></i> Pilihan Sudut Pandang Alternatif:
+                  </span>
+                  <button type="button" onclick="closeIdeaSuggestions()" class="text-slate-500 hover:text-slate-300 text-[10px]">
+                    <i class="fa-solid fa-xmark"></i>
+                  </button>
+                </div>
+                <div id="suggestionChips" class="space-y-1"></div>
+              </div>
+            </div>
+
+            <!-- 2. Target Audiens -->
+            <div>
+              <label class="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1.5">2. Target Audiens</label>
+              <input id="audienceInput" type="text" required placeholder="Contoh: Siswa sekolah dasar, anak-anak, dan keluarga" class="w-full bg-slate-950 border border-slate-800 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 rounded-xl px-3.5 py-2.5 text-sm text-slate-100 placeholder-slate-600 transition">
+            </div>
+
+            <!-- 3. Gaya Visual (Scroll-Down Dropdown Menu) -->
+            <div>
+              <label class="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1.5 flex items-center justify-between">
+                <span>3. Gaya Visual (Pilih Menu Scroll-Down)</span>
+                <span class="text-[10px] text-slate-500 font-normal">15+ Pilihan Style</span>
+              </label>
+
+              <!-- Dropdown Scroll-down Selector -->
+              <div class="relative mb-2">
+                <select id="styleSelect" onchange="onStyleSelectChange(this.value)" class="w-full bg-slate-950 border border-slate-800 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 rounded-xl px-3.5 py-2.5 text-xs text-indigo-300 transition appearance-none cursor-pointer pr-10">
+                  <option value="" disabled>-- Pilih Gaya Visual dari Daftar --</option>
+                  <option value="2D_CARTOON" selected>🎨 2D Kartun Vektor & Lencana (Tiered Storybook & Badge)</option>
+                  <option value="3D_ISOMETRIC">📐 3D Isometric Infographic — Sudut isometrik, teknologi, bisnis & edukasi</option>
+                  <option value="3D_CLAY">🧸 3D Clay Style — Clay/plastisin, lembut, colorful & friendly</option>
+                  <option value="FLAT_VECTOR">✨ Flat Vector Infographic — 2D simpel, warna solid, mudah dipahami</option>
+                  <option value="MODERN_GRADIENT">🌈 Modern Gradient — Gradasi warna modern, premium & futuristik</option>
+                  <option value="GLASSMORPHISM">🪟 Glassmorphism — Panel kaca transparan blur, teknologi/AI</option>
+                  <option value="NEUMORPHISM">🔘 Neumorphism — Timbul lembut dari permukaan dengan bayangan halus</option>
+                  <option value="MINIMALIST_EDITORIAL">📰 Minimalist Editorial — Bersih, ruang kosong, tipografi majalah modern</option>
+                  <option value="BOLD_TYPO">🔤 Bold Typography Infographic — Teks besar sebagai elemen visual utama</option>
+                  <option value="HAND_DRAWN">✏️ Hand-Drawn / Doodle — Coretan tangan, santai, kreatif & edukatif</option>
+                  <option value="PAPER_CUTOUT">✂️ Paper Cutout — Potongan kertas berlapis dengan depth/shadow</option>
+                  <option value="COLLAGE">🖼️ Collage Style — Campuran foto, ilustrasi, tekstur & tipografi</option>
+                  <option value="RETRO_VINTAGE">📻 Retro/Vintage Infographic — Poster lawas, sejarah & storytelling</option>
+                  <option value="CYBERPUNK">⚡ Cyberpunk / Futuristic HUD — Neon, grid holografik & digital interface</option>
+                  <option value="EDITORIAL_3D_REALISTIC">💎 Editorial 3D Realistic — 3D realistis berpadu diagram & tipografi premium</option>
+                  <option value="KINETIC_SOCIAL">📱 Kinetic Social Media Style — Komposisi dinamis mencolok ala Instagram/TikTok</option>
+                </select>
+                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3.5 text-slate-400">
+                  <i class="fa-solid fa-chevron-down text-xs"></i>
+                </div>
+              </div>
+
+              <!-- Deskripsi Ringkas Gaya Terpilih -->
+              <div id="styleDescriptionBox" class="text-[11px] text-slate-400 bg-slate-950/60 border border-slate-800/80 rounded-lg p-2.5 mb-2 leading-relaxed flex items-start gap-2">
+                <i class="fa-solid fa-circle-info text-indigo-400 mt-0.5 text-xs flex-shrink-0"></i>
+                <span id="styleDescText">Ilustrasi kartun bertingkat dengan plang rambu hijau & lencana kayu cembung (Gaya bawaan).</span>
+              </div>
+
+              <!-- Editable Detail Input -->
+              <input id="styleInput" type="text" required placeholder="Detail prompt visual..." class="w-full bg-slate-950/80 border border-slate-800/80 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 rounded-xl px-3 py-2 text-xs font-mono text-slate-200 transition">
+            </div>
+
+            <!-- 4. Aspek Rasio -->
+            <div>
+              <label class="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1.5">4. Aspek Rasio Kanvas</label>
+              <div class="grid grid-cols-5 gap-2">
+                <label class="cursor-pointer">
+                  <input type="radio" name="ratioOpt" value="3:4" checked class="peer sr-only">
+                  <div class="p-2 rounded-xl border border-slate-800 bg-slate-950/80 peer-checked:border-indigo-500 peer-checked:bg-indigo-600/10 text-center transition hover:border-slate-700">
+                    <div class="w-4 h-5.5 border-2 border-current rounded mx-auto mb-1 opacity-70"></div>
+                    <span class="block text-[11px] font-bold text-slate-200">3:4</span>
+                    <span class="block text-[9px] text-slate-500">Poster</span>
+                  </div>
+                </label>
+
+                <label class="cursor-pointer">
+                  <input type="radio" name="ratioOpt" value="9:16" class="peer sr-only">
+                  <div class="p-2 rounded-xl border border-slate-800 bg-slate-950/80 peer-checked:border-indigo-500 peer-checked:bg-indigo-600/10 text-center transition hover:border-slate-700">
+                    <div class="w-3.5 h-6 border-2 border-current rounded mx-auto mb-1 opacity-70"></div>
+                    <span class="block text-[11px] font-bold text-slate-200">9:16</span>
+                    <span class="block text-[9px] text-slate-500">Story</span>
+                  </div>
+                </label>
+
+                <label class="cursor-pointer">
+                  <input type="radio" name="ratioOpt" value="1:1" class="peer sr-only">
+                  <div class="p-2 rounded-xl border border-slate-800 bg-slate-950/80 peer-checked:border-indigo-500 peer-checked:bg-indigo-600/10 text-center transition hover:border-slate-700">
+                    <div class="w-5 h-5 border-2 border-current rounded mx-auto mb-1 opacity-70"></div>
+                    <span class="block text-[11px] font-bold text-slate-200">1:1</span>
+                    <span class="block text-[9px] text-slate-500">Square</span>
+                  </div>
+                </label>
+
+                <label class="cursor-pointer">
+                  <input type="radio" name="ratioOpt" value="4:3" class="peer sr-only">
+                  <div class="p-2 rounded-xl border border-slate-800 bg-slate-950/80 peer-checked:border-indigo-500 peer-checked:bg-indigo-600/10 text-center transition hover:border-slate-700">
+                    <div class="w-5.5 h-4 border-2 border-current rounded mx-auto mb-1 opacity-70"></div>
+                    <span class="block text-[11px] font-bold text-slate-200">4:3</span>
+                    <span class="block text-[9px] text-slate-500">Klasik</span>
+                  </div>
+                </label>
+
+                <label class="cursor-pointer">
+                  <input type="radio" name="ratioOpt" value="16:9" class="peer sr-only">
+                  <div class="p-2 rounded-xl border border-slate-800 bg-slate-950/80 peer-checked:border-indigo-500 peer-checked:bg-indigo-600/10 text-center transition hover:border-slate-700">
+                    <div class="w-6 h-3.5 border-2 border-current rounded mx-auto mb-1 opacity-70"></div>
+                    <span class="block text-[11px] font-bold text-slate-200">16:9</span>
+                    <span class="block text-[9px] text-slate-500">Slide</span>
+                  </div>
+                </label>
+              </div>
+            </div>
+
+            <!-- Submit Button -->
+            <button id="submitBtn" type="submit" class="w-full bg-gradient-to-r from-indigo-600 via-indigo-500 to-amber-500 hover:from-indigo-500 hover:to-amber-400 text-white font-bold py-3.5 px-4 rounded-xl transition shadow-lg shadow-indigo-600/25 active:scale-[0.99] flex items-center justify-center gap-2">
+              <i id="btnIcon" class="fa-solid fa-wand-magic-sparkles"></i>
+              <span id="btnLabel">PROSES POSTER OTOMATIS</span>
+            </button>
+            <p id="cooldownNotice" class="hidden text-center text-[11px] text-amber-400/90 font-medium">
+              <i class="fa-solid fa-shield-halved mr-1"></i> Perlindungan kuota aktif: jeda aman 60 detik antargenerate.
+            </p>
+          </form>
+
+        </div>
+      </section>
+
+      <!-- Right Column: Visual Result & Data Tabs (7 Cols) -->
+      <section class="lg:col-span-7 space-y-4">
+        <div class="glass-card rounded-2xl p-5 sm:p-6 shadow-xl flex flex-col h-full min-h-[600px]">
+          
+          <!-- Top Bar Tabs -->
+          <div class="flex items-center justify-between border-b border-slate-800 pb-3 mb-4">
+            <div class="flex items-center gap-1.5 bg-slate-950/80 p-1 rounded-xl border border-slate-800">
+              <button id="tabImgBtn" onclick="switchTab('image')" class="px-3.5 py-1.5 rounded-lg text-xs font-bold bg-indigo-600 text-white shadow transition flex items-center gap-1.5">
+                <i class="fa-solid fa-image"></i> Poster Visual
+              </button>
+              <button id="tabJsonBtn" onclick="switchTab('json')" class="px-3.5 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-white transition flex items-center gap-1.5">
+                <i class="fa-solid fa-code"></i> Blueprint JSON
+              </button>
+              <button id="tabPromptBtn" onclick="switchTab('prompt')" class="px-3.5 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-white transition flex items-center gap-1.5">
+                <i class="fa-solid fa-terminal"></i> Prompt Visual
+              </button>
+            </div>
+
+            <div id="statusBadge" class="flex items-center gap-2 text-xs font-medium text-slate-400 bg-slate-900 px-3 py-1.5 rounded-lg border border-slate-800">
+              <span class="w-2 h-2 rounded-full bg-slate-600"></span> Siap
+            </div>
+          </div>
+
+          <!-- Viewport 1: Image Canvas -->
+          <div id="imagePanel" class="flex-grow flex flex-col items-center justify-center bg-slate-950/70 border border-slate-800/90 rounded-xl p-4 relative overflow-hidden min-h-[460px]">
+            
+            <!-- Empty Placeholder -->
+            <div id="emptyView" class="text-center max-w-sm p-6 space-y-3">
+              <div class="w-16 h-16 rounded-2xl bg-slate-900 border border-slate-800 mx-auto flex items-center justify-center text-indigo-400 text-2xl shadow-inner">
+                <i class="fa-solid fa-photo-film"></i>
+              </div>
+              <h3 class="text-sm font-bold text-slate-200">Kanvas Poster Menunggu</h3>
+              <p class="text-xs text-slate-500 leading-relaxed">
+                Pilih topik dan gaya visual di sebelah kiri, lalu tekan tombol <strong>Proses Poster Otomatis</strong> untuk menyusun blueprint JSON sekaligus merender gambar infografis utuh.
+              </p>
+            </div>
+
+            <!-- Loading Indicator -->
+            <div id="loadingView" class="hidden flex flex-col items-center justify-center text-center p-6 space-y-4 max-w-md">
+              <div class="relative">
+                <div class="w-14 h-14 rounded-full border-4 border-indigo-500/20 border-t-indigo-500 animate-spin"></div>
+                <div class="absolute inset-0 flex items-center justify-center text-indigo-400 text-sm">
+                  <i class="fa-solid fa-sparkles animate-pulse"></i>
+                </div>
+              </div>
+              <div class="space-y-1">
+                <p id="loadingPhase" class="text-sm font-bold text-white">Langkah 1/3: Menyusun Blueprint JSON...</p>
+                <p id="loadingDetail" class="text-xs text-slate-400">Merancang hierarki informasi dan data visual dengan Gemini Flash</p>
+              </div>
+              <div class="w-48 bg-slate-900 h-1.5 rounded-full overflow-hidden border border-slate-800">
+                <div id="loadingBar" class="bg-gradient-to-r from-indigo-500 to-amber-400 h-full w-1/3 transition-all duration-500"></div>
+              </div>
+            </div>
+
+            <!-- Rendered Image Container -->
+            <div id="resultView" class="hidden flex flex-col items-center justify-center w-full h-full space-y-3">
+              <div class="relative group max-h-[480px] rounded-xl overflow-hidden shadow-2xl border border-slate-800">
+                <img id="generatedImage" src="" alt="Infographic Poster" class="max-h-[480px] w-auto object-contain transition group-hover:scale-[1.01] duration-300">
+                <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center gap-3">
+                  <button onclick="openFullscreenModal()" class="w-10 h-10 rounded-full bg-slate-900/90 text-white flex items-center justify-center hover:bg-indigo-600 transition shadow">
+                    <i class="fa-solid fa-magnifying-glass-plus"></i>
+                  </button>
+                  <a id="downloadBtn" href="#" download="infografis-ai.png" class="w-10 h-10 rounded-full bg-slate-900/90 text-white flex items-center justify-center hover:bg-emerald-600 transition shadow">
+                    <i class="fa-solid fa-arrow-down-to-bracket"></i>
+                  </a>
+                </div>
+              </div>
+
+              <!-- Action Bar under image -->
+              <div class="flex items-center gap-2 pt-2">
+                <a id="downloadBtnSecondary" href="#" download="infografis-ai.png" class="px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 text-xs font-semibold text-slate-200 transition flex items-center gap-2">
+                  <i class="fa-solid fa-download text-indigo-400"></i> Unduh Poster (PNG)
+                </a>
+                <button onclick="openFullscreenModal()" class="px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 text-xs font-semibold text-slate-200 transition flex items-center gap-2">
+                  <i class="fa-solid fa-expand text-amber-400"></i> Perbesar Layar Penuh
+                </button>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Viewport 2: JSON Blueprint -->
+          <div id="jsonPanel" class="hidden flex-grow flex flex-col">
+            <div class="flex items-center justify-between pb-2 mb-2 border-b border-slate-800/80">
+              <span class="text-xs font-mono text-slate-400">Standardized Infographic Blueprint (JSON)</span>
+              <button onclick="copyToClipboard('json')" class="px-2.5 py-1 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-800 text-xs text-slate-300 transition flex items-center gap-1">
+                <i class="fa-solid fa-copy text-indigo-400"></i> Salin JSON
+              </button>
+            </div>
+            <pre id="jsonOutput" class="w-full flex-grow bg-slate-950 p-4 rounded-xl text-xs font-mono text-emerald-400 overflow-y-auto max-h-[460px] leading-relaxed select-all">// Data arsitektur JSON infografis akan ditampilkan di sini setelah proses generate.</pre>
+          </div>
+
+          <!-- Viewport 3: Compiled Visual Prompt -->
+          <div id="promptPanel" class="hidden flex-grow flex flex-col">
+            <div class="flex items-center justify-between pb-2 mb-2 border-b border-slate-800/80">
+              <span class="text-xs font-mono text-slate-400">Compiled AI Image Generator Prompt</span>
+              <button onclick="copyToClipboard('prompt')" class="px-2.5 py-1 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-800 text-xs text-slate-300 transition flex items-center gap-1">
+                <i class="fa-solid fa-copy text-amber-400"></i> Salin Prompt
+              </button>
+            </div>
+            <pre id="promptOutput" class="w-full flex-grow bg-slate-950 p-4 rounded-xl text-xs font-mono text-amber-300 overflow-y-auto max-h-[460px] leading-relaxed whitespace-pre-wrap select-all">// Prompt visual terkompilasi siap salin ke Midjourney, Nano Banana 2, atau ChatGPT DALL-E.</pre>
+          </div>
+
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <!-- Footer with Official Disclaimer -->
+  <footer class="border-t border-slate-800/80 bg-slate-950/70 py-4 px-4 sm:px-6 mt-4">
+    <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-3 text-xs text-slate-400">
+      <div class="flex items-center gap-2.5">
+        <span class="font-bold text-slate-200">WBJ Infografis Maker</span>
+        <span class="text-slate-600">|</span>
+        <span class="text-[11px] text-slate-400">AI Educational Infographic Studio</span>
+      </div>
+      <div class="text-[11px] text-slate-400 max-w-2xl leading-relaxed text-center md:text-right bg-slate-900/60 p-2.5 rounded-xl border border-slate-800/60">
+        <strong class="text-amber-400 font-semibold flex items-center justify-center md:justify-end gap-1 mb-0.5">
+          <i class="fa-solid fa-shield-halved text-[10px]"></i> Disclaimer
+        </strong>
+        Seluruh teks, rancangan blueprint JSON, dan gambar infografis dihasilkan secara otomatis oleh kecerdasan buatan (Generative AI). Konten ditujukan untuk sarana visualisasi kreatif, inspirasi desain, dan media pembelajaran. Pengguna disarankan memverifikasi keakuratan fakta ilmiah dan data spesifik secara mandiri sebelum digunakan untuk publikasi resmi atau komersial.
+      </div>
+    </div>
+  </footer>
+
+  <!-- Fullscreen Modal -->
+  <div id="zoomModal" class="fixed inset-0 z-50 bg-black/90 backdrop-blur-md hidden flex items-center justify-center p-4">
+    <div class="relative max-w-5xl max-h-[90vh] flex flex-col items-center">
+      <button onclick="closeFullscreenModal()" class="absolute -top-12 right-0 text-slate-300 hover:text-white text-2xl transition">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+      <img id="modalImg" src="" alt="Fullscreen Poster" class="max-h-[85vh] w-auto rounded-xl shadow-2xl object-contain border border-slate-800">
+    </div>
+  </div>
+
+  <!-- History Drawer -->
+  <div id="historyDrawer" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden">
+    <div class="fixed top-0 right-0 h-full w-full max-w-md bg-slate-950 border-l border-slate-800 p-6 shadow-2xl flex flex-col justify-between">
+      <div>
+        <div class="flex items-center justify-between border-b border-slate-800 pb-4 mb-4">
+          <h3 class="text-base font-bold text-white flex items-center gap-2">
+            <i class="fa-solid fa-clock-rotate-left text-indigo-400"></i> Riwayat Poster Sesi Ini
+          </h3>
+          <button onclick="toggleHistoryDrawer()" class="text-slate-400 hover:text-white transition">
+            <i class="fa-solid fa-xmark text-lg"></i>
+          </button>
+        </div>
+        <div id="historyList" class="space-y-3 overflow-y-auto max-h-[70vh] pr-1">
+          <p class="text-xs text-slate-500 text-center py-8">Belum ada riwayat poster yang dibuat pada sesi ini.</p>
+        </div>
+      </div>
+      <div class="pt-4 border-t border-slate-800 flex justify-end">
+        <button onclick="clearHistory()" class="text-xs text-rose-400 hover:text-rose-300 transition">
+          Bersihkan Riwayat
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Information Modal -->
+  <div id="infoModal" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 max-w-lg w-full rounded-2xl p-6 space-y-4 shadow-2xl">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <h3 class="text-sm font-bold text-white flex items-center gap-2">
+          <i class="fa-solid fa-circle-info text-indigo-400"></i> Panduan Penggunaan
+        </h3>
+        <button onclick="closeInfoModal()" class="text-slate-400 hover:text-white transition">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+      <div class="text-xs text-slate-300 space-y-3 leading-relaxed">
+        <p>Aplikasi ini menggunakan sistem kecerdasan terpadu 3-tahap:</p>
+        <ol class="list-decimal pl-4 space-y-1.5 text-slate-400">
+          <li><strong>Architect (Gemini Flash):</strong> Merancang konsep edukatif, tipografi 3D, dan skema warna dalam skema JSON baku.</li>
+          <li><strong>Compiler:</strong> Mengonversi struktur JSON menjadi instruksi prompt visual yang padat dan jelas.</li>
+          <li><strong>Visualizer (Gemini Flash Image):</strong> Merender poster infografis utuh resolusi tinggi dalam satu gambar.</li>
+        </ol>
+        <div class="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-200/90 text-[11px] leading-relaxed">
+          <strong class="text-amber-300 block mb-1 font-semibold flex items-center gap-1.5">
+            <i class="fa-solid fa-triangle-exclamation"></i> Disclaimer Penggunaan:
+          </strong>
+          Semua elemen visual dan teks disintesis oleh model AI. Selalu lakukan validasi dan peninjauan faktual sebelum menyebarluaskan materi infografis ke publik.
+        </div>
+      </div>
+      <div class="pt-2 flex justify-end">
+        <button onclick="closeInfoModal()" class="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold transition">
+          Tutup Panduan
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="toast" class="fixed bottom-6 right-6 z-50 bg-slate-900 border border-slate-800 text-white px-4 py-3 rounded-xl shadow-2xl text-xs flex items-center gap-2 transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none">
+    <i id="toastIcon" class="fa-solid fa-circle-check text-emerald-400"></i>
+    <span id="toastMsg">Pesan notifikasi</span>
+  </div>
+
+  <script>
+    // State Management
+    let currentHistory = [];
+    let activeJson = null;
+    let activePrompt = "";
+    let isCoolingDown = false;
+    let cooldownTimer = null;
+    const COOLDOWN_DURATION = 60; // 60 detik jeda antargenerate
+
+    // Kamus Database 15+ Gaya Visual
+    const VISUAL_STYLES_DATABASE = {
+      "2D_CARTOON": {
+        desc: "2D Stylized Cartoon Vector, Children Educational Storybook Style, chunky rounded icons, tiered layers with wooden plaque badges and green signboard labels, warm playful colors",
+        detail: "Ilustrasi kartun 2D berundak dengan plang rambu hijau & lencana kayu cembung yang ramah keluarga."
+      },
+      "3D_ISOMETRIC": {
+        desc: "3D Isometric Infographic, orthographic isometric perspective diorama, clean 3D architectural cutaway, floating modules, bright ambient studio lighting",
+        detail: "Objek 3D dengan sudut isometrik presisi; sangat cocok untuk konsep teknologi, arsitektur, bisnis, dan diagram edukasi."
+      },
+      "3D_CLAY": {
+        desc: "Charming 3D Clay Style, tactile plasticine claymation finish, soft rounded pillowy forms, playful vibrant color palette, friendly miniature figures",
+        detail: "Bentuk seperti clay/plastisin lunak, lembut, ceria, dan bersahabat untuk presentasi santai."
+      },
+      "FLAT_VECTOR": {
+        desc: "Flat Vector Infographic, crisp 2D geometry, solid bold color blocks, clean minimalist vector iconography, clear visual hierarchy, modern educational spread",
+        detail: "Ilustrasi 2D bersih dengan warna solid tanpa gradasi berlebih; materi langsung mudah dipahami."
+      },
+      "MODERN_GRADIENT": {
+        desc: "Modern Gradient Infographic, fluid vibrant duotone transitions, sleek mesh gradients, high-tech gloss highlights, luminous futuristic aesthetic",
+        detail: "Kombinasi gradasi warna modern dan halus, memberikan aura visual yang sangat premium dan futuristik."
+      },
+      "GLASSMORPHISM": {
+        desc: "Glassmorphism Infographic Design, frosted translucent glass panels, background blur effects, glossy specular reflections, sleek high-tech interface cards",
+        detail: "Panel tembus pandang menyerupai kaca dengan efek blur elegan; sangat ideal untuk topik AI dan teknologi modern."
+      },
+      "NEUMORPHISM": {
+        desc: "Neumorphism Infographic Style, soft extruded surface UI, subtle dual inner-outer drop shadows, monochromatic minimal palette, tactile embossed elements",
+        detail: "Elemen terlihat timbul halus dari permukaan kanvas dengan bayangan lembut monokromatik."
+      },
+      "MINIMALIST_EDITORIAL": {
+        desc: "Minimalist Editorial Infographic, Swiss typography style, ample negative breathing room, strong bold typography, sophisticated neutral background, high-end magazine layout",
+        detail: "Sangat bersih, banyak ruang kosong bernapas, tipografi kuat seperti editorial majalah internasional."
+      },
+      "BOLD_TYPO": {
+        desc: "Bold Typography Infographic, oversized giant kinetic numbers and headline typography as central visual drivers, high contrast data presentation, impactful Swiss layout",
+        detail: "Teks dan angka besar menjadi pusat sorotan visual poster; cocok untuk statistik, data penting, dan fakta kunci."
+      },
+      "HAND_DRAWN": {
+        desc: "Hand-Drawn Doodle Infographic, organic sketchbook ink lines, playful colored marker highlights, charming textured illustrations, educational chalkboard feel",
+        detail: "Ilustrasi bertekstur sketsa tangan dan coretan kreatif; terasa santai, akrab, dan menyenangkan."
+      },
+      "PAPER_CUTOUT": {
+        desc: "Paper Cutout Craft Infographic, layered papercraft diorama, distinct drop shadows between layers, tactile cardstock paper textures, dimensional depth",
+        detail: "Objek menyerupai susunan guntingan kertas karton berlapis dengan bayangan bertingkat."
+      },
+      "COLLAGE": {
+        desc: "Modern Editorial Collage Style, artistic mixed-media fusion of cutout photos, textured paper scraps, vector shapes, retro stamps, and expressive typography",
+        detail: "Perpaduan artistik antara potongan foto, tekstur materi, bentuk grafis, dan tipografi ekspresif."
+      },
+      "RETRO_VINTAGE": {
+        desc: "Retro Vintage Infographic Poster, 1960s-1970s print aesthetic, mid-century screenprint halftone dots, aged sepia and warm ochre tones, nostalgic heritage typography",
+        detail: "Nuansa poster cetak klasik/lawas dengan palet hangat; cocok untuk sejarah, narasi budaya, dan storytelling."
+      },
+      "CYBERPUNK": {
+        desc: "Cyberpunk Futuristic HUD Infographic, luminous cyan and magenta neon accents, dark wireframe tech grid, holographic telemetry telemetry, sci-fi data visualization",
+        detail: "Tampilan antarmuka digital futuristik dengan garis neon, telemetry, dan grid bertema teknologi masa depan."
+      },
+      "EDITORIAL_3D_REALISTIC": {
+        desc: "Scientific Editorial 3D Realistic Visualization, photorealistic material textures, accurate volumetric studio lighting, pristine cross-section diagrams, premium museum-grade poster",
+        detail: "Objek 3D realistis bertekstur detail tinggi dipadukan dengan diagram informatif; berkelas layaknya poster pameran sains."
+      },
+      "KINETIC_SOCIAL": {
+        desc: "Kinetic Social Media Infographic Style, eye-catching punchy social layout, ultra-bold expressive stickers, high-energy contrast shapes, mobile-first visual hooks",
+        detail: "Komposisi sangat dinamis dengan elemen visual mencolok yang dirancang mengunci perhatian di Instagram dan TikTok."
+      }
+    };
+
+    function onStyleSelectChange(styleKey) {
+      const selected = VISUAL_STYLES_DATABASE[styleKey];
+      if (!selected) return;
+
+      document.getElementById('styleInput').value = selected.desc;
+      document.getElementById('styleDescText').innerText = selected.detail;
+      showToast('Gaya visual diperbarui!', 'info');
+    }
+
+    function setStyleChip(text) {
+      document.getElementById('styleInput').value = text;
+      showToast('Gaya visual diterapkan!', 'info');
+    }
+
+    function startCooldown() {
+      isCoolingDown = true;
+      let remaining = COOLDOWN_DURATION;
+
+      const submitBtn = document.getElementById('submitBtn');
+      const btnIcon = document.getElementById('btnIcon');
+      const btnLabel = document.getElementById('btnLabel');
+      const cooldownBadge = document.getElementById('cooldownBadge');
+      const cooldownBadgeText = document.getElementById('cooldownBadgeText');
+      const cooldownNotice = document.getElementById('cooldownNotice');
+
+      submitBtn.disabled = true;
+      submitBtn.classList.remove('bg-gradient-to-r', 'from-indigo-600', 'via-indigo-500', 'to-amber-500', 'hover:from-indigo-500', 'hover:to-amber-400', 'shadow-indigo-600/25');
+      submitBtn.classList.add('bg-slate-800', 'text-slate-400', 'cursor-not-allowed', 'border', 'border-slate-700');
+      
+      cooldownBadge.classList.remove('hidden');
+      cooldownNotice.classList.remove('hidden');
+
+      const updateUI = () => {
+        btnIcon.className = 'fa-solid fa-hourglass-half text-amber-400 animate-pulse';
+        btnLabel.innerText = `JEDA ANTREAN API (${remaining}s)`;
+        cooldownBadgeText.innerText = `Jeda: ${remaining}s`;
+      };
+
+      updateUI();
+
+      clearInterval(cooldownTimer);
+      cooldownTimer = setInterval(() => {
+        remaining -= 1;
+        if (remaining > 0) {
+          updateUI();
+        } else {
+          clearInterval(cooldownTimer);
+          isCoolingDown = false;
+          
+          submitBtn.disabled = false;
+          submitBtn.classList.remove('bg-slate-800', 'text-slate-400', 'cursor-not-allowed', 'border', 'border-slate-700');
+          submitBtn.classList.add('bg-gradient-to-r', 'from-indigo-600', 'via-indigo-500', 'to-amber-500', 'hover:from-indigo-500', 'hover:to-amber-400', 'shadow-indigo-600/25');
+          
+          btnIcon.className = 'fa-solid fa-wand-magic-sparkles';
+          btnLabel.innerText = 'PROSES POSTER OTOMATIS';
+          
+          cooldownBadge.classList.add('hidden');
+          cooldownNotice.classList.add('hidden');
+          showToast('Siap! Anda dapat men-generate poster berikutnya.', 'success');
+        }
+      }, 1000);
+    }
+
+    // Tab Navigation
+    function switchTab(tab) {
+      const imgBtn = document.getElementById('tabImgBtn');
+      const jsonBtn = document.getElementById('tabJsonBtn');
+      const promptBtn = document.getElementById('tabPromptBtn');
+      const imgPanel = document.getElementById('imagePanel');
+      const jsonPanel = document.getElementById('jsonPanel');
+      const promptPanel = document.getElementById('promptPanel');
+
+      const activeClass = "px-3.5 py-1.5 rounded-lg text-xs font-bold bg-indigo-600 text-white shadow transition flex items-center gap-1.5";
+      const inactiveClass = "px-3.5 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-white transition flex items-center gap-1.5";
+
+      imgBtn.className = inactiveClass;
+      jsonBtn.className = inactiveClass;
+      promptBtn.className = inactiveClass;
+      imgPanel.classList.add('hidden');
+      jsonPanel.classList.add('hidden');
+      promptPanel.classList.add('hidden');
+
+      if (tab === 'image') {
+        imgBtn.className = activeClass;
+        imgPanel.classList.remove('hidden');
+      } else if (tab === 'json') {
+        jsonBtn.className = activeClass;
+        jsonPanel.classList.remove('hidden');
+      } else if (tab === 'prompt') {
+        promptBtn.className = activeClass;
+        promptPanel.classList.remove('hidden');
+      }
+    }
+
+    // Modal & Drawer Handlers
+    function openFullscreenModal() {
+      const src = document.getElementById('generatedImage').src;
+      if (!src) return;
+      document.getElementById('modalImg').src = src;
+      document.getElementById('zoomModal').classList.remove('hidden');
+    }
+    function closeFullscreenModal() {
+      document.getElementById('zoomModal').classList.add('hidden');
+    }
+    function toggleHistoryDrawer() {
+      const drawer = document.getElementById('historyDrawer');
+      drawer.classList.toggle('hidden');
+    }
+    function openInfoModal() {
+      document.getElementById('infoModal').classList.remove('hidden');
+    }
+    function closeInfoModal() {
+      document.getElementById('infoModal').classList.add('hidden');
+    }
+
+    function showToast(message, type = 'success') {
+      const toast = document.getElementById('toast');
+      const msg = document.getElementById('toastMsg');
+      const icon = document.getElementById('toastIcon');
+
+      msg.innerText = message;
+      if (type === 'success') {
+        icon.className = 'fa-solid fa-circle-check text-emerald-400';
+      } else if (type === 'error') {
+        icon.className = 'fa-solid fa-circle-exclamation text-rose-400';
+      } else {
+        icon.className = 'fa-solid fa-circle-info text-indigo-400';
+      }
+
+      toast.classList.remove('translate-y-20', 'opacity-0');
+      setTimeout(() => {
+        toast.classList.add('translate-y-20', 'opacity-0');
+      }, 2600);
+    }
+
+    function copyToClipboard(target) {
+      let text = "";
+      if (target === 'json') text = document.getElementById('jsonOutput').innerText;
+      if (target === 'prompt') text = document.getElementById('promptOutput').innerText;
+
+      if (!text || text.startsWith('//')) {
+        showToast('Belum ada data untuk disalin', 'error');
+        return;
+      }
+
+      const tempInput = document.createElement("textarea");
+      tempInput.value = text;
+      document.body.appendChild(tempInput);
+      tempInput.select();
+      document.execCommand("copy");
+      document.body.removeChild(tempInput);
+
+      showToast('Berhasil disalin ke clipboard!', 'success');
+    }
+
+    // Retry with Exponential Backoff
+    async function fetchWithBackoff(url, options, maxRetries = 4) {
+      let delay = 1000;
+      for (let i = 0; i < maxRetries; i++) {
+        try {
+          const res = await fetch(url, options);
+          if (res.status === 429) {
+            await new Promise(resolve => setTimeout(resolve, delay));
+            delay *= 2;
+            continue;
+          }
+          return res;
+        } catch (err) {
+          if (i === maxRetries - 1) throw err;
+          await new Promise(resolve => setTimeout(resolve, delay));
+          delay *= 2;
+        }
+      }
+      return fetch(url, options);
+    }
+
+    async function startPipeline() {
+      if (isCoolingDown) {
+        showToast('Mohon tunggu jeda 60 detik selesai agar terhindar dari limit antrean API', 'error');
+        return;
+      }
+
+     const apiKey = document.getElementById('apiKeyInput').value.trim();
+const topic = document.getElementById('topicInput').value.trim();
+const audience = document.getElementById('audienceInput').value.trim();
+const style = document.getElementById('styleInput').value.trim();
+
+const ratioRadios = document.getElementsByName('ratioOpt');
+let ratio = "3:4";
+for (const r of ratioRadios) {
+  if (r.checked) ratio = r.value;
+}
+
+if (!apiKey) {
+  showToast('Harap masukkan API Key Gemini Anda!', 'error');
+  return;
+}
+
+      if (!topic || !audience || !style) {
+        showToast('Harap lengkapi semua kolom formulir!', 'error');
+        return;
+      }
+
+      // UI Loading States
+      switchTab('image');
+      const submitBtn = document.getElementById('submitBtn');
+      const btnIcon = document.getElementById('btnIcon');
+      const btnLabel = document.getElementById('btnLabel');
+      const emptyView = document.getElementById('emptyView');
+      const loadingView = document.getElementById('loadingView');
+      const resultView = document.getElementById('resultView');
+      const loadingPhase = document.getElementById('loadingPhase');
+      const loadingDetail = document.getElementById('loadingDetail');
+      const loadingBar = document.getElementById('loadingBar');
+      const statusBadge = document.getElementById('statusBadge');
+
+      submitBtn.disabled = true;
+      submitBtn.classList.add('opacity-60', 'cursor-not-allowed');
+      btnIcon.className = 'fa-solid fa-spinner fa-spin';
+      btnLabel.innerText = 'MEMPROSES POSTER...';
+
+      emptyView.classList.add('hidden');
+      resultView.classList.add('hidden');
+      loadingView.classList.remove('hidden');
+
+      statusBadge.innerHTML = '<span class="w-2 h-2 rounded-full bg-amber-400 animate-ping"></span> Mengolah Data...';
+
+      let processSucceeded = false;
+
+      try {
+        // TAHAP 1: Generate Blueprint JSON
+        loadingPhase.innerText = 'Langkah 1/3: Menyusun Blueprint JSON Super Detail...';
+        loadingDetail.innerText = 'Merancang arsitektur infografis komprehensif, data metrik, dan hierarki visual padat';
+        loadingBar.style.width = '35%';
+
+        const blueprint = await generateBlueprintJSON(apiKey, topic, audience, style, ratio);
+        activeJson = blueprint;
+        document.getElementById('jsonOutput').innerText = JSON.stringify(blueprint, null, 2);
+
+        // TAHAP 2: Compile Visual Prompt
+        loadingPhase.innerText = 'Langkah 2/3: Mengompilasi Prompt Visual Kaya Elemen...';
+        loadingDetail.innerText = 'Menyusun deskripsi multi-modul, diagram bertingkat, label lencana & kotak data';
+        loadingBar.style.width = '65%';
+
+        const compiledPrompt = compilePromptFromBlueprint(blueprint, style);
+        activePrompt = compiledPrompt;
+        document.getElementById('promptOutput').innerText = compiledPrompt;
+
+        // TAHAP 3: Render Image with Gemini 3.1 Flash Image
+        loadingPhase.innerText = 'Langkah 3/3: Merender Poster Infografis Kompleks...';
+        loadingDetail.innerText = 'Model Gemini 3.1 Flash Image sedang melukis seluruh layer, diagram, dan label informatif';
+        loadingBar.style.width = '90%';
+
+        const imageUrl = await generatePosterImage(apiKey, compiledPrompt, ratio);
+
+        // Render Success
+        document.getElementById('generatedImage').src = imageUrl;
+        document.getElementById('downloadBtn').href = imageUrl;
+        document.getElementById('downloadBtnSecondary').href = imageUrl;
+
+        loadingView.classList.add('hidden');
+        resultView.classList.remove('hidden');
+        statusBadge.innerHTML = '<span class="w-2 h-2 rounded-full bg-emerald-400"></span> Selesai';
+
+        saveToHistory(topic, style, ratio, imageUrl, blueprint);
+        showToast('Poster infografis berhasil dibuat!', 'success');
+        processSucceeded = true;
+
+      } catch (error) {
+        console.error(error);
+        loadingView.classList.add('hidden');
+        emptyView.classList.remove('hidden');
+        statusBadge.innerHTML = '<span class="w-2 h-2 rounded-full bg-rose-500"></span> Gagal';
+        showToast(error.message || 'Terjadi kesalahan saat memproses poster', 'error');
+      } finally {
+        loadingBar.style.width = '0%';
+        submitBtn.classList.remove('opacity-60');
+
+        // Jika berhasil men-generate gambar, aktifkan jeda aman 60 detik
+        if (processSucceeded) {
+          startCooldown();
+        } else {
+          submitBtn.disabled = false;
+          submitBtn.classList.remove('cursor-not-allowed');
+          btnIcon.className = 'fa-solid fa-wand-magic-sparkles';
+          btnLabel.innerText = 'PROSES POSTER OTOMATIS';
+        }
+      }
+    }
+
+    async function generateBlueprintJSON(apiKey, theme, audience, style, ratio) {
+
+      const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
+
+      const systemPrompt = `You are an elite Senior Infographic Art Director & Data Journalist at National Geographic, Katadata, and Detikcom.
+Your mission is to construct an extremely detailed, high-density, multi-panel editorial educational infographic blueprint in strict JSON format.
+
+CRITICAL INSTRUCTION FOR MAXIMUM DENSITY & RICHNESS:
+The resulting infographic must NOT be empty or minimal. It must be visually rich, informative, dense with content, featuring multiple structured sections, callout pointers, numbered badges, sub-diagrams, comparison stats, icons, and educational fact cards.
+
+SCHEMA REQUIREMENTS:
+{
+  "role": "master_infographic_architect",
+  "project_type": "high_density_editorial_infographic_poster",
+  "output_settings": {
+    "output_format": "high-density multi-module educational poster",
+    "aspect_ratio": "${ratio}",
+    "language": "Indonesian"
+  },
+  "header_section": {
+    "category_tag": "KATEGORI / TOPIK",
+    "headline_text": "JUDUL UTAMA YANG KUAT DAN INFORMATIF",
+    "subheadline_text": "Ringkasan edukatif 2-3 kalimat yang padat wawasan",
+    "headline_style": { "primary_color": "#HEX", "font_feel": "bold condensed editorial typography" }
+  },
+  "hero_diorama_section": {
+    "visual_concept": "Concept title",
+    "detailed_scene_breakdown": "Extremely detailed description in English of the central visual illustration (e.g. cutaway diagram, cross-section layers, central diorama, technical components, isometric platform, character actions, annotations).",
+    "focal_elements": ["element 1 with details", "element 2 with details", "element 3 with details", "element 4 with details"],
+    "lighting_and_atmosphere": "volumetric balanced studio lighting, crisp micro-details, ultra-sharp focus"
+  },
+  "step_by_step_stages": [
+    {
+      "step_number": "01",
+      "badge_title": "NAMA TAHAP/BAGIAN 1",
+      "subtitle": "Keterangan spesifik",
+      "explanation": "Penjelasan proses detail 1-2 kalimat",
+      "visual_icon_description": "Deskripsi visual mini icon/elemen tahap ini"
+    },
+    {
+      "step_number": "02",
+      "badge_title": "NAMA TAHAP/BAGIAN 2",
+      "subtitle": "Keterangan spesifik",
+      "explanation": "Penjelasan proses detail 1-2 kalimat",
+      "visual_icon_description": "Deskripsi visual mini icon/elemen tahap ini"
+    },
+    {
+      "step_number": "03",
+      "badge_title": "NAMA TAHAP/BAGIAN 3",
+      "subtitle": "Keterangan spesifik",
+      "explanation": "Penjelasan proses detail 1-2 kalimat",
+      "visual_icon_description": "Deskripsi visual mini icon/elemen tahap ini"
+    },
+    {
+      "step_number": "04",
+      "badge_title": "NAMA TAHAP/BAGIAN 4",
+      "subtitle": "Keterangan spesifik",
+      "explanation": "Penjelasan proses detail 1-2 kalimat",
+      "visual_icon_description": "Deskripsi visual mini icon/elemen tahap ini"
+    }
+  ],
+  "key_data_and_statistics": [
+    {
+      "metric_value": "85%",
+      "metric_label": "Label Data 1",
+      "context": "Konteks singkat data statistik"
+    },
+    {
+      "metric_value": "3.5x",
+      "metric_label": "Label Data 2",
+      "context": "Konteks singkat data statistik"
+    },
+    {
+      "metric_value": "100%",
+      "metric_label": "Label Data 3",
+      "context": "Konteks singkat data statistik"
+    }
+  ],
+  "educational_callout_box": {
+    "box_badge": "TAHUKAH KAMU?",
+    "fact_highlight": "Fakta unik atau sains menarik yang mengejutkan tentang topik ini dalam 2 kalimat."
+  },
+  "actionable_tips_or_summary": {
+    "section_title": "KESIMPULAN & AKSI NYATA",
+    "points": [
+      "Poin penting 1 untuk diingat",
+      "Poin penting 2 yang aplikatif",
+      "Poin penting 3 rekomendasi"
+    ]
+  },
+  "color_palette": {
+    "primary": "#HEX",
+    "secondary": "#HEX",
+    "accent": "#HEX",
+    "card_background": "#HEX",
+    "overall_background": "#HEX"
+  },
+  "negative_prompt": ["sparse layout", "empty canvas", "plain background with only one small icon", "missing diagrams", "watermark", "blurry", "cut off text"]
+};
+
+RULES:
+- Poster title, badges, labels, and explanations MUST be in Indonesian.
+- Rendering directives, visual scenes, and lighting MUST be in English.
+- Supply high semantic detail to make the visual poster filled with informational richness.
+- Return pure JSON only.`;
+
+      const userQuery = `Buatkan rancangan infografis komprehensif, kaya data, padat elemen visual, dan berstruktur lengkap untuk:
+Topik: ${theme}
+Target Audiens: ${audience}
+Gaya Visual: ${style}
+Aspek Rasio: ${ratio}`;
+
+      const payload = {
+        contents: [{ parts: [{ text: userQuery }] }],
+        systemInstruction: { parts: [{ text: systemPrompt }] },
+        generationConfig: {
+          responseMimeType: "application/json"
+        }
+      };
+
+      const res = await fetchWithBackoff(apiUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      const data = await res.json();
+      if (data.error) throw new Error(data.error.message || 'Gagal menghasilkan blueprint JSON');
+
+      const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+      if (!text) throw new Error('Format respon JSON tidak valid');
+
+      return JSON.parse(text);
+    }
+
+    function compilePromptFromBlueprint(bp, userStyle) {
+      const header = bp.header_section || {};
+      const headline = header.headline_text || "INFOGRAFIS EDUKATIF";
+      const subheadline = header.subheadline_text || "";
+      const category = header.category_tag || "INFO SAINS & DATA";
+      
+      const hero = bp.hero_diorama_section || {};
+      const heroConcept = hero.visual_concept || "";
+      const heroScene = hero.detailed_scene_breakdown || "";
+      const focalPoints = (hero.focal_elements || []).join(", ");
+      const lighting = hero.lighting_and_atmosphere || "bright studio lighting, high micro-detail";
+
+      const palette = bp.color_palette || {};
+      const colors = `Primary ${palette.primary || '#1E3A8A'}, Secondary ${palette.secondary || '#D97706'}, Accent ${palette.accent || '#10B981'}, Card panels ${palette.card_background || '#FFFFFF'} on clean textured background ${palette.overall_background || '#F8FAFC'}`;
+
+      // Susun modul tahapan langkah/alur
+      const stages = (bp.step_by_step_stages || []).map((s) => {
+        return `[Stage ${s.step_number}: "${s.badge_title}" - ${s.explanation} (visual: ${s.visual_icon_description || 'detailed illustration'})]`;
+      }).join(" -> ");
+
+      // Susun modul statistik angka
+      const stats = (bp.key_data_and_statistics || []).map((st) => {
+        return `"${st.metric_value} ${st.metric_label}" (${st.context})`;
+      }).join(" | ");
+
+      // Fakta unik
+      const callout = bp.educational_callout_box ? `Feature box '${bp.educational_callout_box.box_badge}': ${bp.educational_callout_box.fact_highlight}` : "";
+
+      // Tips & kesimpulan
+      const tips = (bp.actionable_tips_or_summary?.points || []).map((t, i) => `${i+1}. ${t}`).join(" ");
+
+      return `A complete, densely packed, highly informative professional educational infographic poster about "${headline}".
+Header Section: Prominent category badge "${category}", large bold title "${headline}", subtitle "${subheadline}".
+Visual Centerpiece: ${heroConcept}. Detailed scene: ${heroScene}. Featuring intricate focal elements: ${focalPoints}.
+Multi-Panel Structure & Layout: High-density editorial magazine layout with clear visual hierarchy, containing:
+1. Sequential Process Modules: ${stages}.
+2. Data & Metrics Bar: Big bold stats ${stats}.
+3. Callout Highlight Box: ${callout}.
+4. Actionable Takeaways Footer: ${tips}.
+Art Style & Finish: ${userStyle}. Intricate micro-details, annotated labels, numbered pill badges, clean directional pointers, high visual density, crisp lines, ${lighting}.
+Color Palette: ${colors}.
+Quality: Museum-grade publishing poster, sharp typography in Indonesian, rich visual content with zero empty spaces.`;
+    }
+
+    async function generatePosterImage(apiKey,promptText, ratio) {
+      
+      const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-image:generateContent?key=${apiKey}`;
+
+      const payload = {
+        contents: [
+          {
+            role: 'user',
+            parts: [{ text: promptText }]
+          }
+        ],
+        generationConfig: {
+          responseModalities: ['IMAGE'],
+          imageConfig: {
+            aspectRatio: ratio
+          }
+        }
+      };
+
+      const res = await fetchWithBackoff(apiUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      const data = await res.json();
+      if (data.error) throw new Error(data.error.message || 'Gagal merender gambar poster');
+
+      const part = data.candidates?.[0]?.content?.parts?.find(p => p.inlineData);
+      if (!part || !part.inlineData?.data) {
+        throw new Error('Tidak ada data gambar yang dikembalikan oleh model');
+      }
+
+      return `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`;
+    }
+
+    function saveToHistory(topic, style, ratio, imageUrl, blueprint) {
+      const item = {
+        id: Date.now(),
+        topic,
+        style,
+        ratio,
+        imageUrl,
+        blueprint,
+        timestamp: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })
+      };
+
+      currentHistory.unshift(item);
+      updateHistoryUI();
+    }
+
+    function updateHistoryUI() {
+      const list = document.getElementById('historyList');
+      const badge = document.getElementById('historyBadge');
+
+      if (currentHistory.length === 0) {
+        list.innerHTML = `<p class="text-xs text-slate-500 text-center py-8">Belum ada riwayat poster yang dibuat pada sesi ini.</p>`;
+        badge.classList.add('hidden');
+        return;
+      }
+
+      badge.innerText = currentHistory.length;
+      badge.classList.remove('hidden');
+
+      list.innerHTML = currentHistory.map(item => `
+        <div onclick="restoreHistoryItem(${item.id})" class="p-3 rounded-xl bg-slate-900 hover:bg-slate-800/80 border border-slate-800 cursor-pointer transition flex items-center gap-3">
+          <img src="${item.imageUrl}" alt="thumb" class="w-12 h-14 object-cover rounded-lg border border-slate-700 flex-shrink-0">
+          <div class="overflow-hidden">
+            <h4 class="text-xs font-bold text-white truncate">${item.topic}</h4>
+            <p class="text-[10px] text-slate-400 truncate mt-0.5">${item.style}</p>
+            <div class="flex items-center gap-2 mt-1">
+              <span class="text-[9px] px-1.5 py-0.2 rounded bg-indigo-900/60 text-indigo-300 font-mono">${item.ratio}</span>
+              <span class="text-[9px] text-slate-500">${item.timestamp}</span>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function restoreHistoryItem(id) {
+      const item = currentHistory.find(i => i.id === id);
+      if (!item) return;
+
+      document.getElementById('generatedImage').src = item.imageUrl;
+      document.getElementById('downloadBtn').href = item.imageUrl;
+      document.getElementById('downloadBtnSecondary').href = item.imageUrl;
+
+      document.getElementById('jsonOutput').innerText = JSON.stringify(item.blueprint, null, 2);
+      
+      const emptyView = document.getElementById('emptyView');
+      const resultView = document.getElementById('resultView');
+      emptyView.classList.add('hidden');
+      resultView.classList.remove('hidden');
+
+      toggleHistoryDrawer();
+      switchTab('image');
+      showToast('Poster riwayat dipulihkan!', 'info');
+    }
+
+    function clearHistory() {
+      currentHistory = [];
+      updateHistoryUI();
+      showToast('Riwayat dibersihkan', 'info');
+    }
+
+    // Fitur: Men-generate ide singkat menjadi topik infografis lengkap & komprehensif
+    async function expandIdeaWithAI() {
+      const topicInput = document.getElementById('topicInput');
+      const audienceInput = document.getElementById('audienceInput');
+      const expandBtn = document.getElementById('expandIdeaBtn');
+      const expandIcon = document.getElementById('expandIdeaIcon');
+      const expandLabel = document.getElementById('expandIdeaLabel');
+      const briefTopic = topicInput.value.trim();
+
+      if (!briefTopic) {
+        showToast('Masukkan kata kunci atau ide singkat terlebih dahulu!', 'error');
+        topicInput.focus();
+        return;
+      }
+
+      // UI State Loading
+      expandBtn.disabled = true;
+      expandBtn.classList.add('opacity-60', 'cursor-not-allowed');
+      expandIcon.className = 'fa-solid fa-spinner fa-spin text-[10px]';
+      expandLabel.innerText = 'Mengembangkan...';
+
+      try {
+        const apiKey = "";
+        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
+
+        const promptText = `Anda adalah editor infografis edukasi & sains berpengalaman.
+Tugas Anda adalah memperluas ide singkat atau kata kunci berikut menjadi konsep topik infografis yang berbobot, terstruktur, edukatif, dan menarik untuk disajikan dalam bentuk poster visual.
+
+Ide Singkat: "${briefTopic}"
+
+Format output JSON murni:
+{
+  "expanded_topic": "Judul lengkap dan detail yang memuat alur/tahapan atau fakta kunci (Contoh: 'Siklus Hidup Kupu-Kupu: Dari Telur Mikroskopis, Ulat Rakus, Kepompong Misterius, hingga Menjadi Kupu-Kupu Elegan')",
+  "suggested_audience": "Rekomendasi target audiens yang spesifik dan pas",
+  "alternative_angles": [
+    "Sudut pandang alternatif 1 yang menarik dan berbeda fokus",
+    "Sudut pandang alternatif 2 (misal: fokus statistik, sejarah, atau dampak lingkungan)"
+  ]
+}`;
+
+        const payload = {
+          contents: [{ parts: [{ text: promptText }] }],
+          generationConfig: {
+            responseMimeType: "application/json"
+          }
+        };
+
+        const res = await fetchWithBackoff(apiUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        const data = await res.json();
+        if (data.error) throw new Error(data.error.message || 'Gagal mengembangkan ide');
+
+        const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+        if (!rawText) throw new Error('Respon AI kosong');
+
+        const parsed = JSON.parse(rawText);
+
+        // Isi topik dan target audiens secara otomatis
+        if (parsed.expanded_topic) {
+          topicInput.value = parsed.expanded_topic;
+        }
+        if (parsed.suggested_audience && (!audienceInput.value.trim() || audienceInput.value.includes('Siswa sekolah dasar'))) {
+          audienceInput.value = parsed.suggested_audience;
+        }
+
+        // Tampilkan opsi alternatif sudut pandang
+        renderIdeaSuggestions(parsed.alternative_angles || []);
+        showToast('Ide berhasil dikembangkan secara komprehensif!', 'success');
+
+      } catch (err) {
+        console.error(err);
+        showToast(err.message || 'Gagal memperluas ide dengan AI', 'error');
+      } finally {
+        expandBtn.disabled = false;
+        expandBtn.classList.remove('opacity-60', 'cursor-not-allowed');
+        expandIcon.className = 'fa-solid fa-wand-magic-sparkles text-[10px] text-indigo-400';
+        expandLabel.innerText = 'Kembangkan Ide (AI)';
+      }
+    }
+
+    function renderIdeaSuggestions(angles) {
+      const box = document.getElementById('ideaSuggestionsBox');
+      const list = document.getElementById('suggestionChips');
+
+      if (!angles || angles.length === 0) {
+        box.classList.add('hidden');
+        return;
+      }
+
+      list.innerHTML = angles.map(angle => `
+        <button type="button" onclick="selectSuggestionAngle('${encodeURIComponent(angle)}')" class="w-full text-left p-1.5 rounded-lg bg-slate-900/90 hover:bg-indigo-950/60 border border-slate-800 hover:border-indigo-500/40 text-[11px] text-slate-300 hover:text-indigo-200 transition flex items-start gap-1.5 leading-tight">
+          <i class="fa-solid fa-arrow-turn-down-right text-[10px] text-indigo-400 mt-0.5 flex-shrink-0"></i>
+          <span>${angle}</span>
+        </button>
+      `).join('');
+
+      box.classList.remove('hidden');
+    }
+
+    function selectSuggestionAngle(encodedAngle) {
+      const angle = decodeURIComponent(encodedAngle);
+      document.getElementById('topicInput').value = angle;
+      showToast('Sudut pandang alternatif dipilih!', 'info');
+    }
+
+    function closeIdeaSuggestions() {
+      document.getElementById('ideaSuggestionsBox').classList.add('hidden');
+    }
+
+    // Initialize defaults on load
+    window.onload = function() {
+      // Set nilai default awal
+      document.getElementById('topicInput').value = "Metamorfosis Sempurna Kupu-Kupu: Telur, Ulat, Kepompong, hingga Menjadi Kupu-Kupu Indah";
+      document.getElementById('audienceInput').value = "Siswa sekolah dasar, anak-anak, dan keluarga";
+      
+      // Pilih default 2D Cartoon dari database dropdown
+      const defaultStyle = VISUAL_STYLES_DATABASE["2D_CARTOON"];
+      document.getElementById('styleSelect').value = "2D_CARTOON";
+      document.getElementById('styleInput').value = defaultStyle.desc;
+      document.getElementById('styleDescText').innerText = defaultStyle.detail;
+    };
+  </script>
+</body>
+</html>
